@@ -29,14 +29,14 @@ class TestBackend(unittest.TestCase):
 
     def testRunModel(self):
         name = self.get_name("mul_1.pb")
-        rep = backend.prepare(name)
+        rep = backend.prepare(name, modeltype="path")
         x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
         res = rep.run(x)
         output_expected = np.array([[1.0, 4.0], [9.0, 16.0], [25.0, 36.0]], dtype=np.float32)
         np.testing.assert_allclose(output_expected, res[0], rtol=1e-05, atol=1e-08)
 
     def testRunModelNonTensor(self):
-        name = self.get_name("pipeline_vectorize.onnx")
+        name = self.get_name("pipeline_vectorize.onnx", modeltype="path")
         rep = backend.prepare(name)
         x = {0: 25.0, 1: 5.13, 2: 0.0, 3: 0.453, 4: 5.966}
         res = rep.run(x)
@@ -47,7 +47,7 @@ class TestBackend(unittest.TestCase):
         name = datasets.get_example("logreg_iris.onnx")
         model = load(name)
         
-        rep = backend.prepare(model)
+        rep = backend.prepare(model, modeltype="bytes")
         x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
         res = rep.run(x)
         output_expected = np.array([0, 0, 0], dtype=np.float32)

@@ -13,11 +13,14 @@ class InferenceSession:
     """
     This is the main class used to run a model.
     """
-    def __init__(self, path_or_bytes, sess_options=None):
+    def __init__(self, path_or_bytes, modeltype, sess_options=None):
         """
         :param path_or_bytes: filename or serialized model in a byte string
         :param sess_options: session options
         """
+        if modeltype not in ("path", "bytes"):
+            raise RuntimeError("Model type required: can only be 'bytes' or 'path'.")
+            
         if sess_options:
             self._sess = C.InferenceSession(
                 sess_options, C.get_session_initializer())
@@ -25,9 +28,9 @@ class InferenceSession:
             self._sess = C.InferenceSession(
                 C.get_session_initializer(), C.get_session_initializer())
 
-        if isinstance(path_or_bytes, str):
+        if isinstance(path_or_bytes, str) and modeltype == 'path':
             self._sess.load_model(path_or_bytes)
-        elif isinstance(path_or_bytes, bytes):
+        elif isinstance(path_or_bytes, str) and modeltype == 'bytes':
             self._sess.read_bytes(path_or_bytes)
         elif isinstance(path_or_bytes, tuple):
             # to remove, hidden trick

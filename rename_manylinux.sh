@@ -6,7 +6,7 @@
 # hack script to modify whl as manylinux whl
 whl=(*whl)
 renamed_whl=`echo $whl | sed --expression='s/linux/manylinux1/g'`
-basename=`echo $whl | awk -F'-cp3' '{print $1}'`
+basename=`echo $whl | awk -F'-cp2' '{print $1}'`
 unzip $whl
 sed -i 's/linux/manylinux1/g' ${basename}.dist-info/WHEEL
 # explicitly set file perms

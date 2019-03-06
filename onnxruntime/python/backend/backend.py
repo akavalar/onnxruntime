@@ -44,7 +44,7 @@ class OnnxRuntimeBackend(Backend):
         return device in get_device()
 
     @classmethod
-    def prepare(cls, model, device=None, **kwargs):
+    def prepare(cls, model, modeltype, device=None, **kwargs):
         """
         Load the model and creates a :class:`onnxruntime.InferenceSession`
         ready to be used as a backend.
@@ -57,6 +57,9 @@ class OnnxRuntimeBackend(Backend):
         :param kwargs: see :class:`onnxruntime.SessionOptions`
         :return: :class:`onnxruntime.InferenceSession`
         """
+        if modeltype not in ("path", "bytes"):
+            raise RuntimeError("Model type required: can only be 'bytes' or 'path'.")
+
         if isinstance(model, OnnxRuntimeBackendRep):
             return model
         elif isinstance(model, InferenceSession):
@@ -66,18 +69,18 @@ class OnnxRuntimeBackend(Backend):
             for k, v in kwargs.items():
                 if hasattr(options, k):
                     setattr(options, k, v)
-            inf = InferenceSession(model, options)
+            inf = InferenceSession(model, modeltype, options)
             if device is not None and not cls.supports_device(device):
                 raise RuntimeError("Incompatible device expected '{0}', got '{1}'".format(device, get_device()))
-            return cls.prepare(inf, device, **kwargs)
+            return cls.prepare(inf, modeltype, device, **kwargs)
         else:
             # type: ModelProto
             check_model(model)
             bin = model.SerializeToString()
-            return cls.prepare(bin, device, **kwargs)
+            return cls.prepare(bin, modeltype, device, **kwargs)
 
     @classmethod
-    def run_model(cls, model, inputs, device=None, **kwargs):
+    def run_model(cls, model, modeltype, inputs, device=None, **kwargs):
         """
         Compute the prediction.
 
@@ -90,7 +93,10 @@ class OnnxRuntimeBackend(Backend):
         :param kwargs: see :class:`onnxruntime.RunOptions`
         :return: predictions
         """
-        rep = cls.prepare(model, device, **kwargs)
+        if modeltype not in ("path", "bytes"):
+            raise RuntimeError("Model type required: can only be 'bytes' or 'path'.")
+            
+        rep = cls.prepare(model, modeltype, device, **kwargs)
         options = RunOptions()
         for k, v in kwargs.items():
             if hasattr(options, k):

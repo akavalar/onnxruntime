@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
@@ -10,6 +10,7 @@ from onnx import numpy_helper
 from onnx import helper
 from onnx import utils
 from onnx import AttributeProto, TensorProto, GraphProto
+from pathlib2 import Path
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -23,7 +24,7 @@ def generate_abs_op_test(type, X, top_test_folder):
         else:
            test_folder = os.path.join(top_test_folder,"not_raw")
         data_dir = os.path.join(test_folder,"test_data_0")
-        os.makedirs(data_dir, exist_ok=True)
+        Path(data_dir).mkdir(parents=True, exist_ok=True)
         # Create one output (ValueInfoProto)
         Y = helper.make_tensor_value_info('Y', type, X.shape)
         X_INFO = helper.make_tensor_value_info('X', type, X.shape)
@@ -48,7 +49,7 @@ def generate_abs_op_test(type, X, top_test_folder):
 
 def generate_size_op_test(type, X, test_folder):
     data_dir = os.path.join(test_folder,"test_data_0")
-    os.makedirs(data_dir, exist_ok=True)
+    Path(data_dir).mkdir(parents=True, exist_ok=True)
     # Create one output (ValueInfoProto)
     Y = helper.make_tensor_value_info('Y', TensorProto.INT64, [])
     X_INFO = helper.make_tensor_value_info('X', type, X.shape)
@@ -87,7 +88,7 @@ def test_size(output_dir):
 
 np.array(['abc', 'xy'])
 args = parse_arguments()
-os.makedirs(args.output_dir,exist_ok=True)
+Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 test_abs(args.output_dir)
 test_size(args.output_dir)
 

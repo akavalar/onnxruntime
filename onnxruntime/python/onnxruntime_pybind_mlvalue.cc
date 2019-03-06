@@ -101,15 +101,14 @@ void CreateTensorMLValue(AllocatorPtr alloc, const std::string& name_input, PyAr
       // Strings are Python strings or numpy.unicode string.
       std::string* dst = p_tensor->MutableData<std::string>();
       auto item_size = PyArray_ITEMSIZE(darray);
-      auto num_chars = item_size / PyUnicode_4BYTE_KIND;
+      auto num_chars = item_size / 4;
       char* src = static_cast<char*>(PyArray_DATA(darray));
       const char* str;
-      Py_ssize_t size;
       PyObject* pStr;
       for (int i = 0; i < shape.Size(); i++, src += item_size) {
         // Python unicode strings are assumed to be USC-4. Strings are stored as UTF-8.
-        pStr = PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, src, num_chars);
-        str = PyUnicode_AsUTF8AndSize(pStr, &size);
+        pStr = PyUnicode_FromUnicode((const Py_UNICODE*)(src), num_chars);
+        str = PyString_AsString(pStr);
         if (str == NULL) {
           dst[i] = "";
         } else {

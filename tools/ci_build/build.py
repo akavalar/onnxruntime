@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
@@ -17,6 +17,8 @@ import sys
 import warnings
 import hashlib
 from os.path import expanduser
+from backports.shutil_which import which
+from pathlib2 import Path
 
 logging.basicConfig(format="%(asctime)s %(name)s [%(levelname)s] - %(message)s", level=logging.DEBUG)
 log = logging.getLogger("Build")
@@ -125,7 +127,7 @@ Use the individual flags to only run the specified stages.
 
 def resolve_executable_path(command_or_path):
     """Returns the absolute path of an executable."""
-    executable_path = shutil.which(command_or_path)
+    executable_path = which(command_or_path)
     if executable_path is None:
         raise BuildError("Failed to resolve executable path for '{}'.".format(command_or_path))
     return os.path.realpath(executable_path)
@@ -153,7 +155,7 @@ def run_subprocess(args, cwd=None, capture=False, dll_path=None, shell=False):
                 my_env["LD_LIBRARY_PATH"] = dll_path
 
     stdout, stderr = (subprocess.PIPE, subprocess.STDOUT) if capture else (None, None)
-    return subprocess.run(args, cwd=cwd, check=True, stdout=stdout, stderr=stderr, env=my_env, shell=shell)
+    return subprocess.check_call(args, cwd=cwd, stdout=stdout, stderr=stderr, env=my_env, shell=shell)
 
 def update_submodules(source_dir):
     run_subprocess(["git", "submodule", "update", "--init", "--recursive"], cwd=source_dir)
@@ -187,7 +189,8 @@ def install_ubuntu_deps(args):
     if not is_docker():
         try:
             if args.enable_pybind:
-                install_apt_package("python3")
+                #install_apt_package("python3")
+                pass
 
             if args.use_openblas:
                 install_apt_package("libopenblas-dev")
@@ -219,19 +222,19 @@ def check_md5(filename, expected_md5):
 #the last part of src_url should be unique, across all the builds
 def download_test_data(build_dir, src_url, expected_md5, azure_sas_key):
     cache_dir = os.path.join(expanduser("~"), '.cache','onnxruntime')
-    os.makedirs(cache_dir, exist_ok=True)
+    Path(cache_dir).mkdir(parents=True, exist_ok=True)
     local_zip_file = os.path.join(cache_dir, os.path.basename(src_url))
     if not check_md5(local_zip_file, expected_md5):
         log.info("Downloading test data")
         if azure_sas_key:
             src_url += azure_sas_key
         # try to avoid logging azure_sas_key
-        if shutil.which('aria2c'):
-            result = subprocess.run(['aria2c','-x', '5', '-j',' 5',  '-q', src_url, '-d', cache_dir])
+        if which('aria2c'):
+            result = subprocess.call(['aria2c','-x', '5', '-j',' 5',  '-q', src_url, '-d', cache_dir])
             if result.returncode != 0:
                 raise BuildError("aria2c exited with code {}.".format(result.returncode))
-        elif shutil.which('curl'):
-            result = subprocess.run(['curl', '-s', src_url, '-o', local_zip_file])
+        elif which('curl'):
+            result = subprocess.call(['curl', '-s', src_url, '-o', local_zip_file])
             if result.returncode != 0:
                 raise BuildError("curl exited with code {}.".format(result.returncode))
         else:
@@ -245,9 +248,9 @@ def download_test_data(build_dir, src_url, expected_md5, azure_sas_key):
     if os.path.exists(models_dir):
         log.info('deleting %s' % models_dir)
         shutil.rmtree(models_dir)
-    if shutil.which('unzip'):
+    if which('unzip'):
         run_subprocess(['unzip','-qd', models_dir, local_zip_file])
-    elif shutil.which('7za'):
+    elif which('7za'):
         run_subprocess(['7za','x', local_zip_file, '-y', '-o' + models_dir])
     else:
         #TODO: use python for unzip
@@ -265,7 +268,7 @@ def setup_test_data(build_dir, configs, test_data_url, test_data_checksum, azure
         src_model_dir = os.path.join(build_dir, 'models')
         for config in configs:
             config_build_dir = get_config_build_dir(build_dir, config)
-            os.makedirs(config_build_dir, exist_ok=True)
+            Path(config_build_dir).mkdir(parents=True, exist_ok=True)
             dest_model_dir = os.path.join(config_build_dir, 'models')
             if os.path.exists(src_model_dir) and not os.path.exists(dest_model_dir):
                 log.debug("creating shortcut %s -> %s"  % (src_model_dir, dest_model_dir))
@@ -300,6 +303,7 @@ def generate_build_tree(cmake_path, source_dir, build_dir, cuda_home, cudnn_home
                  "-Donnxruntime_USE_NUPHAR=" + ("ON" if args.use_nuphar else "OFF"),
                  "-Donnxruntime_USE_EIGEN_THREADPOOL=" + ("ON" if args.use_eigenthreadpool else "OFF"), 
                  "-Donnxruntime_USE_TRT=" + ("ON" if args.use_trt else "OFF"),
+                 "-DPYBIND11_PYTHON_VERSION=2.7",
                  ]
     if args.use_brainslice:
         bs_pkg_name = args.brain_slice_package_name.split('.', 1)
@@ -333,7 +337,7 @@ def generate_build_tree(cmake_path, source_dir, build_dir, cuda_home, cudnn_home
 
     for config in configs:
         config_build_dir = get_config_build_dir(build_dir, config)
-        os.makedirs(config_build_dir, exist_ok=True)
+        Path(config_build_dir).mkdir(parents=True, exist_ok=True)
 
         if args.use_tvm:
             os.environ["PATH"] = os.path.join(config_build_dir, "external", "tvm", config) + os.pathsep + os.environ["PATH"]
@@ -548,7 +552,7 @@ def main():
     # if using cuda, setup cuda paths and env vars
     cuda_home, cudnn_home = setup_cuda_vars(args)
 
-    os.makedirs(build_dir, exist_ok=True)
+    Path(build_dir).mkdir(parents=True, exist_ok=True)
 
     log.info("Build started")
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + os.path.dirname(sys.executable)
@@ -568,7 +572,8 @@ def main():
         if is_ubuntu_1604():
             install_ubuntu_deps(args)
             if not is_docker():
-                install_python_deps()
+                #install_python_deps()
+                pass
         if (args.enable_pybind and is_windows()):
             install_python_deps()
         if (not args.skip_submodule_sync):
