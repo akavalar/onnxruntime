@@ -36,8 +36,8 @@ class TestBackend(unittest.TestCase):
         np.testing.assert_allclose(output_expected, res[0], rtol=1e-05, atol=1e-08)
 
     def testRunModelNonTensor(self):
-        name = self.get_name("pipeline_vectorize.onnx", modeltype="path")
-        rep = backend.prepare(name)
+        name = self.get_name("pipeline_vectorize.onnx")
+        rep = backend.prepare(name, modeltype="path")
         x = {0: 25.0, 1: 5.13, 2: 0.0, 3: 0.453, 4: 5.966}
         res = rep.run(x)
         output_expected = np.array([[49.752754]], dtype=np.float32)
