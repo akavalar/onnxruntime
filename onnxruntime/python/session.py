@@ -13,7 +13,7 @@ class InferenceSession:
     """
     This is the main class used to run a model.
     """
-    def __init__(self, path_or_bytes, modeltype, sess_options=None):
+    def __init__(self, path_or_bytes, modeltype=None, sess_options=None):
         """
         :param path_or_bytes: filename or serialized model in a byte string
         :param sess_options: session options
