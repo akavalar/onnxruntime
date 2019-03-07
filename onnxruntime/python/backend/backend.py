@@ -44,7 +44,7 @@ class OnnxRuntimeBackend(Backend):
         return device in get_device()
 
     @classmethod
-    def prepare(cls, model, modeltype, device=None, **kwargs):
+    def prepare(cls, model, modeltype=None, device=None, **kwargs):
         """
         Load the model and creates a :class:`onnxruntime.InferenceSession`
         ready to be used as a backend.
@@ -80,7 +80,7 @@ class OnnxRuntimeBackend(Backend):
             return cls.prepare(bin, modeltype, device, **kwargs)
 
     @classmethod
-    def run_model(cls, model, modeltype, inputs, device=None, **kwargs):
+    def run_model(cls, model, inputs, modeltype=None, device=None, **kwargs):
         """
         Compute the prediction.
 
