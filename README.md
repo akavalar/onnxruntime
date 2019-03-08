@@ -31,7 +31,7 @@ List of all changes: http://github.com/Microsoft/onnxruntime/compare/master...ak
 1. When starting a session, you need to specify whether you're loading the model from disk (use argument `modeltype="path"`) or if the model is already loaded in memory (use argument `modeltype="bytes"`). In Python 2 byte and string types are the same, so the required `modeltype` argument specifies the type instead.
 2. If the build errors out in the `onnx_backend_test_series.py` section when running ONNX tests (#4 above), reinstall `more-itertools` and try again (see https://stackoverflow.com/questions/54648246/invalid-syntax-in-more-itertools-when-running-pytest).
 3. Pybind11 documentation (https://pybind11.readthedocs.io/en/stable/advanced/cast/strings.html) recommends using unicode_literals (https://python-future.org/unicode_literals.html).
-4. All strings need to be Unicode strings (not byte strings) and they can only contain ASCII characters. If not, you will __very likely__ end up with incorrect results. Some examples (data found in /onnxruntime/onnxruntime/test/testdata):
+4. All strings need to be Unicode strings (not byte strings) and they can only contain ASCII characters. If not, you will __very likely__ end up with incorrect results. Some examples (data found in `/onnxruntime/onnxruntime/test/testdata`):
 
 ```
 import onnxruntime as onnxrt
@@ -40,7 +40,7 @@ import numpy as np
 
 #1
 ```
-sess = onnxrt.InferenceSession("home/username/LabelEncoder.pb", modeltype="path")
+sess = onnxrt.InferenceSession("/home/username/LabelEncoder.pb", modeltype="path")
 input_name = sess.get_inputs()[0].name
 output_name = sess.get_outputs()[0].name
 	
@@ -54,7 +54,7 @@ np.testing.assert_allclose(np.array([3], dtype=np.int64), res[0], rtol=1e-05, at
 
 #2
 ```
-sess = onnxrt.InferenceSession("home/username/identity_string.pb", modeltype="path")
+sess = onnxrt.InferenceSession("/home/username/identity_string.pb", modeltype="path")
 x_name = sess.get_inputs()[0].name
 output_name = sess.get_outputs()[0].name
 
@@ -69,7 +69,7 @@ np.testing.assert_equal(x, res[0])
 
 #3
 ```
-sess = onnxrt.InferenceSession("home/username/identity_string.pb", modeltype="path")
+sess = onnxrt.InferenceSession("/home/username/identity_string.pb", modeltype="path")
 x_name = sess.get_inputs()[0].name
 output_name = sess.get_outputs()[0].name
 
