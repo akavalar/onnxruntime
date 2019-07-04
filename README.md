@@ -1,5 +1,13 @@
 # ONNX Runtime and Python 2.7
 
+## Update (July 3rd, 2019)
+To build the latest ONNX Runtime repo (0.4.0 as of July 3rd) for use with Python 2.7 on Ubuntu 18.04 LTS, I followed the instructions below with some tweaks here and there:
+- the testing script (onnxruntime_test_python.py) has been changed a bit (make sure you account for all tests involving strings!)
+- four test cases instead of three in onnxruntime_test_python_backend.py
+- some minimal changes to build.py (requiring additional "which" and "Path")
+
+Also, I came across the same issue as reported here: https://github.com/microsoft/onnxruntime/issues/1258
+
 ## Requirements
 
 1. Python modules
